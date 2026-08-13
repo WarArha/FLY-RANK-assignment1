@@ -6,7 +6,7 @@ import sqlite3 as db
 appi=appi()
 
 
-def get_connection(db_name):
+def get_connection(db_name="tasks.db"):
     conn=db.connect(db_name)
     conn.row_factory=db.Row
     return conn
@@ -31,26 +31,21 @@ def create_tables():
         connection.commit()
     connection.close()
         
+
+
+
+
+
+
+
+
+
+
      
 
 @appi.on_event("startup")
 async def start():
     create_tables()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -74,23 +69,33 @@ async def h_status():
 
 
 
-in_memory=[{"id":1, "title":"clean house", "done":False},
-           {"id":2, "title":"buy groceries", "done":True},
-           {"id":3, "title":"wash car", "done":True}
-           ]
+
 
 @appi.get("/tasks")
 async def task_list_send():
-    return in_memory
+    connection=get_connection()
+    cursor=connection.cursor()
+    cursor.execute("select id,title,done from tasks")
+    rows=cursor.fetchall()
+    connection.close()
+    return [dict(i) for i in rows]# we shall return it as list
+
+
+
+
+
 
 @appi.get("/tasks/{id}")
 async def one_task_send(id:int):
-    for i in in_memory:
-        if i["id"]== id:
-            return i
+    connection=get_connection()
+    cursor=connection.cursor()
+    cursor.execute("select id,title,done from tasks where id = ?",(id,))# we must pass id as tuple
+    row=cursor.fetchone()
+    connection.close()
 
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"task {id} not found")
-
+    if row is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"task {id} not found")
+    return dict(row)
 
 
 
