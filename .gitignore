@@ -1,0 +1,24 @@
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Python Bytecode & Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Testing & Pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Databases (SQLite)
+*.db
+*.sqlite3
+
+# OS Specific Files
+.DS_Store
+Thumbs.db
