@@ -111,10 +111,18 @@ class task_take(bmw):
 async def add_task(task: task_take):
     if task.title.strip()  == "" :
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="task title can't be empty")
-    next_id=max((i["id"] for i in in_memory),default=0)+1
-    new_task={"id":next_id, "title":task.title.strip(),"done":False}
-    in_memory.append(new_task)
-    return new_task
+    connection=get_connection()
+    cursor=connection.cursor()
+    cursor.execute("insert into tasks (title,done) values (?,?)",(task.title.strip(),False))
+    connection.commit()
+    last_id=cursor.lastrowid
+    cursor.execute("select * from tasks where id = ?",(last_id,))
+    row=cursor.fetchone()
+    connection.close()
+
+    return dict(row)
+    
+
 
 
 
@@ -128,27 +136,10 @@ class request_body(bmw):
 async def update(id:int , request:request_body):
 
 
-    
-    for i in in_memory:
-        if i["id"]==id:
+    conn=get_connection()
+    cursor=conn.cursor()
+    cursor.execute("select ")
 
-            if request.title is None and request.done_status is None:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Must provide title or done_status to update",
-                )
-
-            
-            if request.title is not None: 
-                if request.title.strip() == "":
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="title can't be empty",
-                    )
-                i["title"]=request.title.strip()
-            if request.done_status is not None: 
-                i["done"]=request.done_status
-            return i
 
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="id not found")
 
