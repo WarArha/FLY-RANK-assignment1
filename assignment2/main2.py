@@ -138,26 +138,65 @@ async def update(id:int , request:request_body):
 
     conn=get_connection()
     cursor=conn.cursor()
-    cursor.execute("select ")
+    cursor.execute("select * from tasks where id=?",(id,))
+    row=cursor.fetchone()
 
 
+    if row is not None:
+            if request.title is None and request.done_status is None:
+                conn.close()
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Must provide title or done_status to update",
+                )
+
+            if request.title is not None: 
+                if request.title.strip() == "":
+                    conn.close()
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="title can't be empty",
+                    )
+                cursor.execute("update tasks set title = ? where id = ?",(request.title.strip(),id,))
+            if request.done_status is not None: 
+                cursor.execute("update tasks set done = ? where id = ?",(request.done_status,id))
+            conn.commit()
+            cursor.execute("select * from tasks where id = ?",(id,))
+            row=cursor.fetchone()
+            
+            conn.close()
+            return dict(row)
+
+    conn.close()
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="id not found")
 
 
+
+
+
+
+
+
+
+            
+        
 @appi.delete("/tasks/{id}",status_code=204)
 async def remove(id : int ):
 
-    found = 0
+    conn=get_connection()
+    cursor=conn.cursor()
+
+    cursor.execute("select * from tasks where id = ? ",(id,))
+    row=cursor.fetchone()
+
+    if row is None:
+        conn.close()
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="id not found")
+    
+    cursor.execute("delete from tasks where id = ? ",(id,))
+    conn.commit()
+    conn.close()
 
     
-    target_index=0
-    for i,task in enumerate(in_memory):
-
-        if task["id"]==id:
-            in_memory.pop(i)
-            found=1
-            break
-    if found==0:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="id not found")
             
     
