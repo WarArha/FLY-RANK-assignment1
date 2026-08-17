@@ -2,17 +2,20 @@ from fastapi import FastAPI as appi,  HTTPException,  status
 from pydantic import BaseModel as bmw
 from typing import Optional as op
 import sqlite3 as db
+import os
 
 appi=appi()
 
 
-def get_connection(db_name="tasks.db"):
-    conn=db.connect(db_name)
+
+def get_connection():
+    db_url=os.getenv("DATABASE_URL","tasks.db")
+    conn=db.connect(db_url)
     conn.row_factory=db.Row
     return conn
 
 def create_tables():
-    connection=get_connection("tasks.db")
+    connection=get_connection()
     cursor=connection.cursor()
 
     cursor.execute("""create table if not exists tasks( 

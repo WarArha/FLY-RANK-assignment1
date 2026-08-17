@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: task_api_app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      # Map container's database file to local directory so data persists across restarts
+      - sqlite_data:/app/data
+
+volumes:
+  sqlite_data:
